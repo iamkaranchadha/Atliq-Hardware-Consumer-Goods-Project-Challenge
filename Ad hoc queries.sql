@@ -73,10 +73,9 @@ where fiscal_year = 2021
 group by segment)
 
 select segment,
-	unique_product_2020,
-    unique_product_2021,
-    (unique_product_2021-unique_product_2020) as 
-    diff
+       unique_product_2020,
+       unique_product_2021,
+       (unique_product_2021-unique_product_2020) as diff
 from cte1
 join cte2
 using (segment)
@@ -90,19 +89,15 @@ order by diff desc;
 
 
 select 	p.Product_code,
-		p.product,
+	p.product,
         m.manufacturing_cost
 from dim_product p
 join fact_manufacturing_cost m
 on p.product_code=m.product_code
-where manufacturing_cost = (
-		select max(manufacturing_cost) 
-        from fact_manufacturing_cost)
+where manufacturing_cost = (select max(manufacturing_cost) from fact_manufacturing_cost)
         or
-        manufacturing_cost = (select
-        min(manufacturing_cost) 
-        from fact_manufacturing_cost)
-        order by manufacturing_cost desc;
+      manufacturing_cost = (select min(manufacturing_cost) from fact_manufacturing_cost)
+      order by manufacturing_cost desc;
         
 
 6) Generate a report which contains the top 5 customers who received an average high pre_invoice_discount_pct for the fiscal year 2021 and in the 
@@ -113,9 +108,8 @@ where manufacturing_cost = (
 
 
 select c.customer_code,
-		c.customer,
-        round(avg(pre_invoice_discount_pct),2) as
-        avg_discount_per
+       c.customer,
+       round(avg(pre_invoice_discount_pct),2) as avg_discount_per
 from dim_customer c
 join fact_pre_invoice_deductions p
 on c.customer_code=p.customer_code
@@ -175,8 +169,7 @@ order by total_sold_quantity desc;
 
 with cte1 as (
 select channel,
-		round(sum((gross_price*sold_quantity)
-        /1000000),2) as gross_sales_mln
+       round(sum((gross_price*sold_quantity)/1000000),2) as gross_sales_mln
 from fact_sales_monthly fsm
 join fact_gross_price fgp
 using (product_code)
@@ -187,9 +180,8 @@ group by channel
 order by gross_sales_mln desc)
 
 select channel,
-	gross_sales_mln,
-    round(gross_sales_mln*100/
-    sum(gross_sales_mln) over(),2) as percentage
+       gross_sales_mln,
+       round(gross_sales_mln*100/sum(gross_sales_mln) over(),2) as percentage
 from cte1
 order by percentage desc;
 
@@ -205,9 +197,9 @@ order by percentage desc;
 
 with cte1 as(
 select p.division,
-	   p.product_code,
+       p.product_code,
        p.product,
-	   sum(fsm.sold_quantity) 
+       sum(fsm.sold_quantity) 
        as total_sold_quantity
 from dim_product p
 join fact_sales_monthly fsm
@@ -216,7 +208,7 @@ where fsm.fiscal_year = 2021
 group by p.product_code),
 
 cte2 as (
-		select *,
+	select *,
         dense_rank () over 
         (partition by division order by total_sold_quantity desc) as
         rank_order
